@@ -1,4 +1,4 @@
-namespace TestOpenTelemetry.Models;
+namespace TestOpenTelemetry.SK.Models;
 
 public class ErrorViewModel
 {

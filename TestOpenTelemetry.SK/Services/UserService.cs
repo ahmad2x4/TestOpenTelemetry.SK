@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace TestOpenTelemetry.Services;
+namespace TestOpenTelemetry.SK.Services;
 
 public interface IUserService
 {
@@ -11,7 +11,7 @@ public interface IUserService
 public class UserService : IUserService
 {
     private readonly ILogger<UserService> _logger;
-    private static readonly ActivitySource ActivitySource = new("TestOpenTelemetry.UserService");
+    private static readonly ActivitySource ActivitySource = new("TestOpenTelemetry.SK.UserService");
 
     public UserService(ILogger<UserService> logger)
     {

@@ -1,25 +1,32 @@
 using System.Diagnostics;
+using System.Text;
 using Microsoft.AspNetCore.Mvc;
-using TestOpenTelemetry.Models;
-using TestOpenTelemetry.Services;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.Agents;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
+using TestOpenTelemetry.SK.Models;
+using TestOpenTelemetry.SK.Plugins;
+using TestOpenTelemetry.SK.Services;
 
-namespace TestOpenTelemetry.Controllers;
+namespace TestOpenTelemetry.SK.Controllers;
 
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
     private readonly IUserService _userService;
-    private static readonly ActivitySource ActivitySource = new("TestOpenTelemetry.HomeController");
+    private static readonly ActivitySource ActivitySource = new("TestOpenTelemetry.SK.HomeController");
+    private readonly Kernel _kernel;
 
-    public HomeController(ILogger<HomeController> logger, IUserService userService)
+    public HomeController(Kernel kernel, ILogger<HomeController> logger, IUserService userService)
     {
+        _kernel = kernel;
         _logger = logger;
         _userService = userService;
     }
 
     public async Task<IActionResult> Index()
     {
-        _logger.LogInformation("Hellog world from index");
+        _logger.LogInformation("Hello world from index");
         // Create a main activity for the Index action
         using var mainActivity = ActivitySource.StartActivity("HomeController.Index");
         mainActivity?.SetTag("controller", "Home");
@@ -70,7 +77,39 @@ public class HomeController : Controller
         }
         
         _logger.LogInformation("Index action completed successfully");
-        return View();
+
+       await SimpleAICall();
+       return View();
+    }
+
+    private async Task SimpleAICall()
+    {
+        Kernel kernel = _kernel.Clone();
+        
+        // Import plug-in from type
+        kernel.ImportPluginFromType<LightsPlugin>();
+        
+        var agent = new ChatCompletionAgent()
+        {
+            Name = "LightSwitcher",
+            Instructions = "You are a helpful agent that can help with checking the light statuses and turn them on and off " +
+                           "using plugins",
+            Kernel = kernel,
+            Arguments = new KernelArguments(
+                new OpenAIPromptExecutionSettings()
+                {
+                    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+                })
+        };
+
+        var response = agent.InvokeAsync("What it the status of lights?");
+        StringBuilder responseBuilder = new StringBuilder();
+        await foreach (var message in response)
+        {
+            responseBuilder.Append(message.Message);
+        }
+        
+        _logger.LogInformation("Answer {answer}", responseBuilder.ToString());
     }
 
     public IActionResult Privacy()

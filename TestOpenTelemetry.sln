@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestOpenTelemetry", "TestOpenTelemetry\TestOpenTelemetry.csproj", "{898C524B-3B2B-482F-B3A8-1428F1BABF6A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestOpenTelemetry.SK", "TestOpenTelemetry.SK\TestOpenTelemetry.SK.csproj", "{898C524B-3B2B-482F-B3A8-1428F1BABF6A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
