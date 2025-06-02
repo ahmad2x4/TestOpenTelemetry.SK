@@ -1,17 +1,17 @@
 using Serilog;
-using Serilog.Sinks.OpenTelemetry;
 using SerilogTracing;
-using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure Serilog
 Log.Logger = new LoggerConfiguration()
+    .Enrich.WithProperty("Application", typeof(Program).Assembly.GetName().Name)
     .Enrich.FromLogContext()
     .WriteTo.Seq("http://localhost:5341")
     .CreateLogger();
 
 using var _ = new ActivityListenerConfiguration()
+    .Instrument.AspNetCoreRequests()
     .TraceToSharedLogger();
 
 builder.Host.UseSerilog();
