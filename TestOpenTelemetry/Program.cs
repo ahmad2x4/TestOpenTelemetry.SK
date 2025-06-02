@@ -1,6 +1,7 @@
 using Serilog;
 using Serilog.Sinks.OpenTelemetry;
 using SerilogTracing;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,10 +9,6 @@ var builder = WebApplication.CreateBuilder(args);
 Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .WriteTo.Seq("http://localhost:5341")
-    .WriteTo.OpenTelemetry("http://localhost:4318", OtlpProtocol.HttpProtobuf, null, new Dictionary<string, object>
-    {
-        { "service.name", typeof(Program).Assembly.GetName().Name ?? "TestASPNetApp" }
-    })
     .CreateLogger();
 
 using var _ = new ActivityListenerConfiguration()
@@ -21,6 +18,7 @@ builder.Host.UseSerilog();
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<TestOpenTelemetry.Services.IUserService, TestOpenTelemetry.Services.UserService>();
 
 var app = builder.Build();
 
