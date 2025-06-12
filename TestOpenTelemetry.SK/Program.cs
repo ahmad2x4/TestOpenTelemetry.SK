@@ -27,21 +27,29 @@ builder.Host.UseSerilog();
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IUserService, UserService>();
 
-// Register sample light data
-builder.Services.AddSingleton<List<LightModel>>(provider => new List<LightModel>
+var openAIKey = builder.Configuration["Settings:OpenAI:ApiKey"];
+
+
+// Create a kernel with Azure OpenAI chat completion
+var kernelBuilder = Kernel.CreateBuilder().AddOpenAIChatCompletion("gpt-4o-mini", openAIKey);
+kernelBuilder.Services.AddSerilog();
+
+// Register dependencies in kernel's service collection
+kernelBuilder.Services.AddSingleton<List<LightModel>>(provider => new List<LightModel>
 {
     new() { Id = 1, Name = "Living Room Light", IsOn = true, Brightness = Brightness.Medium, Color = "#FFF8DC" },
     new() { Id = 2, Name = "Kitchen Light", IsOn = false, Brightness = Brightness.High, Color = "#F0F8FF" },
     new() { Id = 3, Name = "Bedroom Light", IsOn = true, Brightness = Brightness.Low, Color = "#4169E1" }
 });
-var openAIKey = builder.Configuration["Settings:OpenAI:ApiKey"];
-var openAiClient = new OpenAIClient(openAIKey);
-builder.Services.AddOpenAIChatClient("gpt-4o-mini", openAiClient);
+kernelBuilder.Services.AddScoped(typeof(ILogger<>), typeof(Logger<>));
+kernelBuilder.Services.AddScoped<LightsPlugin>();
 
-// Register the LightsPlugin
-builder.Services.AddScoped<LightsPlugin>();
+// Build the kernel
+Kernel kernel = kernelBuilder.Build();
 
-builder.Services.AddScoped((serviceProvider) => new Kernel(serviceProvider));
+builder.Services.AddSingleton(kernel);
+
+
 
 var app = builder.Build();
 
